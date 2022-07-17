@@ -1,19 +1,21 @@
-import { BullModule } from '@nestjs/bull';
-import { DynamicModule, Module } from '@nestjs/common';
-import { JobOptions } from 'bull';
-import { Source } from './source.service';
+import { BullModule } from '@nestjs/bull'
+import { DynamicModule, Module } from '@nestjs/common'
+import { JobOptions } from 'bull'
+import { Source } from './source.service'
 
 @Module({})
 export class SourceModule {
-
-  static register(sourceDriver: DynamicModule, options?: JobOptions): DynamicModule {
+  static register(
+    sourceDriver: DynamicModule,
+    options?: JobOptions
+  ): DynamicModule {
     return {
       module: SourceModule,
       imports: [
         BullModule.registerQueue({
           name: 'source'
         }),
-        sourceDriver 
+        sourceDriver
       ],
       providers: [
         {
@@ -22,7 +24,7 @@ export class SourceModule {
         },
         Source
       ],
-      exports: [Source],
-    };
+      exports: [Source]
+    }
   }
 }

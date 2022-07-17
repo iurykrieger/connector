@@ -1,5 +1,5 @@
-import { DynamicModule, Module } from "@nestjs/common";
-import { TodoTransform } from "./todo.transform";
+import { DynamicModule, Module } from '@nestjs/common'
+import { TodoTransform } from './todo.transform'
 
 @Module({})
 export class TodoTransformModule {
@@ -13,7 +13,7 @@ export class TodoTransformModule {
           useClass: TodoTransform
         }
       ],
-      exports: ['TRANSFORM_DRIVER'],
-    };
+      exports: ['TRANSFORM_DRIVER']
+    }
   }
 }
