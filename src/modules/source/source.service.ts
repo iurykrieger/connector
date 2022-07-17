@@ -1,13 +1,11 @@
-import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
+import { Inject, Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { Job, JobOptions, Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
-
-export type SourceCallback<T> = (item: T) => Promise<Job<T>>
-
-export type SourceDriver<T> = (callback: SourceCallback<T>) => Promise<void> | void
+import { SourceDriver } from '@interfaces/source.interface'
 
 @Injectable()
 export class Source<T> implements OnModuleInit {
+    private readonly logger = new Logger(Source.name);
 
     constructor(
         @InjectQueue('source') private sourceQueue: Queue<T>,
@@ -16,11 +14,15 @@ export class Source<T> implements OnModuleInit {
     ) {}
     
     async onModuleInit(): Promise<void> {
-        await this.driver((item: T) => this.addItemToQueue(item))
+        this.logger.log('Starting to fetch items...')
+        await this.driver.fetch((item: T) => this.addItemToQueue(item))
     }
 
-    private addItemToQueue(item: T): Promise<Job<T>> {
-        return this.sourceQueue.add(item, this.options)
+    private async addItemToQueue(item: T): Promise<Job<T>> {
+        this.logger.debug(`Trying to add item ${item} to the source queue`)
+        const job = await this.sourceQueue.add(item, this.options)
+        this.logger.debug(`Added item ${item} to the source queue as job ${job.id}`)
+        return job
     }
 
 }

@@ -2,8 +2,12 @@ import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { SourceModule } from './modules/source/source.module';
-import { SourceCallback } from './modules/source/source.service';
+import { SourceModule } from '@modules/source/source.module';
+import { HttpSourceModule } from '@modules/source/drivers/http/http.module';
+import { TransformModule } from '@modules/transform/transform.module';
+import { TodoTransformModule } from '@modules/transform/drivers/todo/todo.module';
+import { SinkModule } from '@modules/sink/sink.module';
+import { HttpSinkModule } from '@modules/sink/drivers/http/http.module';
 
 @Module({
   imports: [
@@ -17,19 +21,19 @@ import { SourceCallback } from './modules/source/source.service';
           port: configService.get<number>('REDIS_PORT'),
         },
         prefix: `${configService.get<string>('NODE_ENV')}-connector`,
+        defaultJobOptions: {
+          removeOnComplete: true,
+          removeOnFail: false
+        }
       })
     }),
-    SourceModule.register(async (callback: SourceCallback<Product>) => {
-      while (true) {
-        const p: Product = {
-          a: 'teste',
-          b: 1234
-        }
-        const job = await callback(p)
-      }
-    }, {
-      attempts: 2
-    })
+    SourceModule.register(HttpSourceModule.register(), {
+      attempts: 4
+    }),
+    TransformModule.register(TodoTransformModule.register(), {
+      attempts: 4
+    }),
+    SinkModule.register(HttpSinkModule.register())
   ],
   controllers: [AppController],
   providers: [],
